@@ -195,3 +195,18 @@ YAML, Node 22.16.0, pnpm 10.15.1.
 - Full browser execution remains unavailable locally because the Chromium
   executable is not installed; CI's browser-install step is required for live
   E2E evidence.
+
+## MinIO registry availability follow-up (2026-09-13)
+
+- RED: `test_minio_images_use_approved_quay_release_pins` failed because the
+  Compose contract referenced Docker Hub (`minio/minio` and `minio/mc`).
+- GREEN: both images now use the exact pinned official Quay references:
+  `quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z` and
+  `quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z`.
+- Compose YAML parsed successfully; the registry contract and existing compose
+  security contracts passed (`5 passed`).
+- Backend Ruff, mypy, full pytest (`170 passed, 1 skipped`), frontend frozen
+  install/lint/typecheck/Vitest (58 tests)/build, Playwright discovery (6
+  tests), shell syntax, and `git diff --check` passed.
+- Docker/Compose execution and image pulls remain unverified locally because
+  Docker is unavailable; CI must provide the runtime pull/build evidence.

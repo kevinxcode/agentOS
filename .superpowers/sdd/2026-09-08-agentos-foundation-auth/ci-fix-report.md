@@ -163,3 +163,19 @@ YAML, Node 22.16.0, pnpm 10.15.1.
   were not available in this environment (`docker`, `trivy`, `shellcheck`, and
   `actionlint` were all unavailable). CI must provide the final evidence for
   those gates.
+
+## Chromium E2E selector follow-up (2026-09-13)
+
+- RED: the new static contract
+  `test_login_e2e_targets_the_visible_authentication_error_alert` failed against
+  the broad `page.getByRole("alert")` locator.
+- GREEN: `login.spec.ts` now uses
+  `page.getByRole("alert", { name: "Authentication failed", exact: true })`,
+  targeting the visible application error while excluding Next's route
+  announcer.
+- Playwright discovery passed and listed all 6 login tests.
+- Frontend ESLint, TypeScript, Vitest (`3 files, 58 tests`), and Next build all
+  passed after the selector update.
+- Full Playwright execution could not run because Chromium was not installed:
+  `/root/.cache/ms-playwright/chromium_headless_shell-1243/.../chrome-headless-shell`
+  was missing. This is a local environment limitation; CI installs Chromium.

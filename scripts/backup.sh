@@ -14,6 +14,7 @@ configure_target "$3" "$4"
 require_stopped_writers
 command -v age >/dev/null || fail "Install age before backup"
 private_temp
+# shellcheck disable=SC2016
 "${compose[@]}" exec -T postgres sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom --no-owner --no-acl' > "$work/database.dump"
 "${compose[@]}" run --rm --no-deps -T api python /app/scripts/backup_archive.py export > "$work/objects.tar"
 python3 "$repo_root/scripts/backup_archive.py" pack "$work" "$work/backup.tar"

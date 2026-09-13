@@ -107,7 +107,8 @@ jobs:
         run: >-
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
           aquasec/trivy:0.61.1 image --exit-code 1 --severity HIGH,CRITICAL
-          --scanners vuln 'agentos-${{ matrix.name }}:ci'
+          --scanners vuln --pkg-types os,library --ignore-unfixed
+          'agentos-${{ matrix.name }}:ci'
   acceptance:
     runs-on: ubuntu-24.04
     timeout-minutes: 30

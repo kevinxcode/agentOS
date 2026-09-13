@@ -22,7 +22,7 @@ restore_exit() {
   trap - EXIT
   if ((status != 0 && ${#owned_restore_volumes[@]} != 0)); then
     echo "Restore failed; removing only volumes created by this restore invocation." >&2
-    if ! remove_owned_restore_volumes; then
+    if ! remove_owned_restore_volumes "$compose_start_attempted"; then
       echo "CRITICAL: automatic rollback failed; keep project $project isolated and inspect it." >&2
     fi
   fi
@@ -46,9 +46,11 @@ compose_start_attempted=1
 "${compose[@]}" up -d --wait postgres minio redis
 "${compose[@]}" run --rm -T minio-init
 # Check emptiness before any data import; never clean/drop an existing database.
+# shellcheck disable=SC2016
 count=$("${compose[@]}" exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema = '\''public'\''"')
 [[ $count == 0 ]] || fail "Restore database must be empty; use a fresh explicit project"
 "${compose[@]}" run --rm --no-deps -T api python /app/scripts/backup_archive.py check-empty
+# shellcheck disable=SC2016
 "${compose[@]}" exec -T postgres sh -c 'exec pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --exit-on-error --single-transaction --no-owner --no-acl' < "$work/validated/database.dump"
 "${compose[@]}" run --rm --no-deps -T --user "$(id -u):$(id -g)" -v "$work/validated:/restore:ro" api python /app/scripts/backup_archive.py import /restore/objects.tar
 echo "Restore rehearsal imported successfully. Application services remain stopped; verify migrations, objects and authentication before startup."

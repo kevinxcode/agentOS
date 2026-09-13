@@ -58,7 +58,7 @@ claim_restore_volumes() {
   done
 }
 remove_owned_restore_volumes() {
-  local actual cleanup_failed=0 volume
+  local compose_start_attempted=${1:-0} actual cleanup_failed=0 volume
   if ((compose_start_attempted == 1)); then
     if ! "${compose[@]}" down --remove-orphans; then
       cleanup_failed=1

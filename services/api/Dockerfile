@@ -13,7 +13,10 @@ COPY --from=uv /uv /uvx /bin/
 
 COPY services/api/pyproject.toml ./pyproject.toml
 COPY services/api/uv.lock ./uv.lock
-RUN uv sync --frozen --no-dev --no-install-project
+RUN apt-get update \
+    && apt-get upgrade --yes \
+    && rm -rf /var/lib/apt/lists/* \
+    && uv sync --frozen --no-dev --no-install-project
 
 COPY services/api/src ./src
 COPY services/api/alembic.ini ./alembic.ini

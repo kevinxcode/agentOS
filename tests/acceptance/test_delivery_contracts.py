@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -150,6 +151,29 @@ def test_ci_has_independent_read_only_pinned_gates():
     acceptance_commands = json.dumps(jobs["acceptance"]["steps"])
     assert "compose_smoke.sh" in acceptance_commands
     assert "acceptance_smoke.sh" in acceptance_commands
+
+
+def test_container_scan_blocks_fixable_high_and_critical_os_and_library_findings():
+    model = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text())
+    containers = model["jobs"]["containers"]
+    images = containers["strategy"]["matrix"]["include"]
+    scan = next(
+        step["run"]
+        for step in containers["steps"]
+        if step.get("name") == "Fail on high or critical image vulnerabilities"
+    )
+    arguments = shlex.split(scan)
+
+    assert images == [
+        {"name": "api", "dockerfile": "services/api/Dockerfile"},
+        {"name": "web", "dockerfile": "apps/web/Dockerfile"},
+    ]
+    assert arguments[arguments.index("--exit-code") + 1] == "1"
+    assert arguments[arguments.index("--severity") + 1] == "HIGH,CRITICAL"
+    assert arguments[arguments.index("--scanners") + 1] == "vuln"
+    assert arguments[arguments.index("--pkg-types") + 1] == "os,library"
+    assert "--ignore-unfixed" in arguments
+    assert "--ignorefile" not in arguments
 
 
 def test_smoke_refuses_production_project_before_docker():

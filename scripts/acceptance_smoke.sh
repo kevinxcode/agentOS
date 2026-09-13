@@ -32,6 +32,7 @@ if "${compose[@]}" exec -T api python /app/scripts/bootstrap_admin.py --email ot
 fi
 "${compose[@]}" ps --format json | python3 scripts/check_ports.py
 (cd apps/web && node e2e/foundation.mjs)
+# shellcheck disable=SC2016
 events=$("${compose[@]}" exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT action FROM audit_events WHERE outcome = '\''success'\''"')
 for action in auth.login auth.totp.enrolled auth.logout; do
   [[ $'\n'$events$'\n' == *$'\n'"$action"$'\n'* ]] || { echo "Missing audit event: $action" >&2; exit 1; }

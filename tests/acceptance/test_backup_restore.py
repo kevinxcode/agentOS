@@ -216,6 +216,21 @@ def test_environment_file_cannot_be_overridden_by_inherited_credentials(tmp_path
     assert result.returncode == 0
 
 
+def test_restore_cleanup_accepts_lifecycle_state_without_a_caller_global():
+    command = f'''source "{ROOT}/scripts/operations_common.sh"
+compose=(false)
+clean_environment=(env)
+owned_restore_volumes=()
+restore_nonce=fixture
+unset compose_start_attempted
+remove_owned_restore_volumes 0
+'''
+
+    result = subprocess.run(["bash", "-c", command], capture_output=True)
+
+    assert result.returncode == 0, result.stderr
+
+
 def test_malformed_object_metadata_is_rejected_before_extraction(tmp_path):
     source = tmp_path / "source"
     source.mkdir()

@@ -215,14 +215,16 @@ YAML, Node 22.16.0, pnpm 10.15.1.
 
 - CI confirmed that the Quay-hosted MinIO images pull and become healthy, but
   the final acceptance gate exposed a portability failure in the Compose `ps`
-  JSON port report: it did not report the active loopback binding to the checker.
+  JSON port report. A first correction also confirmed that the runner does not
+  populate the active binding under Docker inspect `NetworkSettings.Ports`.
 - RED: the port contract was changed to an authoritative Docker Engine inspect
   fixture and failed with `Expected only web to publish port 3000` against the
   old Compose-formatter parser.
 - GREEN: acceptance now resolves every project container ID and pipes `docker
-  inspect` output to `check_ports.py`. The checker reads service labels and
-  `NetworkSettings.Ports`, requires the web `3000/tcp` binding to have a host
-  port on IPv4 loopback, and rejects every other published binding.
+  inspect` output to `check_ports.py`. The checker reads service labels and the
+  stable requested bindings in `HostConfig.PortBindings`, requires the web
+  `3000/tcp` binding to have a host port on IPv4 loopback, and rejects every
+  other published binding.
 - The focused runtime-port tests passed (`5 passed`), Ruff passed, and every
   shell script passed syntax validation. Docker execution remains CI-only in
   this environment.

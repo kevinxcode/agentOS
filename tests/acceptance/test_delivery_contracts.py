@@ -68,8 +68,8 @@ def test_environment_generation_matches_shared_public_origin_policy(tmp_path, ca
                     "Config": {
                         "Labels": {"com.docker.compose.service": "web"}
                     },
-                    "NetworkSettings": {
-                        "Ports": {
+                    "HostConfig": {
+                        "PortBindings": {
                             "3000/tcp": [
                                 {"HostIp": "127.0.0.1", "HostPort": "3300"}
                             ]
@@ -80,7 +80,7 @@ def test_environment_generation_matches_shared_public_origin_policy(tmp_path, ca
                     "Config": {
                         "Labels": {"com.docker.compose.service": "api"}
                     },
-                    "NetworkSettings": {"Ports": {"8000/tcp": None}},
+                    "HostConfig": {"PortBindings": {}},
                 },
             ],
             True,
@@ -91,8 +91,8 @@ def test_environment_generation_matches_shared_public_origin_policy(tmp_path, ca
                     "Config": {
                         "Labels": {"com.docker.compose.service": "web"}
                     },
-                    "NetworkSettings": {
-                        "Ports": {
+                    "HostConfig": {
+                        "PortBindings": {
                             "3000/tcp": [
                                 {"HostIp": "0.0.0.0", "HostPort": "3300"}
                             ]
@@ -108,8 +108,8 @@ def test_environment_generation_matches_shared_public_origin_policy(tmp_path, ca
                     "Config": {
                         "Labels": {"com.docker.compose.service": "api"}
                     },
-                    "NetworkSettings": {
-                        "Ports": {
+                    "HostConfig": {
+                        "PortBindings": {
                             "8000/tcp": [
                                 {"HostIp": "127.0.0.1", "HostPort": "8000"}
                             ]

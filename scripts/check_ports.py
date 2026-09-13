@@ -11,7 +11,9 @@ for row in rows:
     service = row.get("Config", {}).get("Labels", {}).get(
         "com.docker.compose.service"
     )
-    for target, bindings in row.get("NetworkSettings", {}).get("Ports", {}).items():
+    for target, bindings in row.get("HostConfig", {}).get(
+        "PortBindings", {}
+    ).items():
         for binding in bindings or []:
             if service != "web" or target != "3000/tcp":
                 raise SystemExit("Unexpected public port binding")

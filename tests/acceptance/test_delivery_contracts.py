@@ -65,29 +65,39 @@ def test_environment_generation_matches_shared_public_origin_policy(tmp_path, ca
         (
             [
                 {
-                    "Service": "web",
-                    "Publishers": [
-                        {
-                            "TargetPort": 3000,
-                            "PublishedPort": 3300,
-                            "URL": "127.0.0.1",
+                    "Config": {
+                        "Labels": {"com.docker.compose.service": "web"}
+                    },
+                    "NetworkSettings": {
+                        "Ports": {
+                            "3000/tcp": [
+                                {"HostIp": "127.0.0.1", "HostPort": "3300"}
+                            ]
                         }
-                    ],
-                }
+                    },
+                },
+                {
+                    "Config": {
+                        "Labels": {"com.docker.compose.service": "api"}
+                    },
+                    "NetworkSettings": {"Ports": {"8000/tcp": None}},
+                },
             ],
             True,
         ),
         (
             [
                 {
-                    "Service": "web",
-                    "Publishers": [
-                        {
-                            "TargetPort": 3000,
-                            "PublishedPort": 3300,
-                            "URL": "0.0.0.0",
+                    "Config": {
+                        "Labels": {"com.docker.compose.service": "web"}
+                    },
+                    "NetworkSettings": {
+                        "Ports": {
+                            "3000/tcp": [
+                                {"HostIp": "0.0.0.0", "HostPort": "3300"}
+                            ]
                         }
-                    ],
+                    },
                 }
             ],
             False,
@@ -95,8 +105,16 @@ def test_environment_generation_matches_shared_public_origin_policy(tmp_path, ca
         (
             [
                 {
-                    "Service": "api",
-                    "Publishers": [{"TargetPort": 8000, "PublishedPort": 8000}],
+                    "Config": {
+                        "Labels": {"com.docker.compose.service": "api"}
+                    },
+                    "NetworkSettings": {
+                        "Ports": {
+                            "8000/tcp": [
+                                {"HostIp": "127.0.0.1", "HostPort": "8000"}
+                            ]
+                        }
+                    },
                 }
             ],
             False,
@@ -111,6 +129,13 @@ def test_live_port_contract(rows, valid):
         capture_output=True,
     )
     assert (result.returncode == 0) is valid
+
+
+def test_acceptance_inspects_authoritative_runtime_port_bindings():
+    script = (ROOT / "scripts/acceptance_smoke.sh").read_text()
+
+    assert 'docker inspect "${container_ids[@]}" | python3 scripts/check_ports.py' in script
+    assert "ps --format json | python3 scripts/check_ports.py" not in script
 
 
 def test_ci_has_independent_read_only_pinned_gates():

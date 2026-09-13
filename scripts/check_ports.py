@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
-"""Validate Docker Compose ps JSON (JSON array or one object per line)."""
+"""Validate authoritative Docker inspect JSON for Compose service bindings."""
 
 import json
 import sys
 
 raw = sys.stdin.read().strip()
-rows = (
-    json.loads(raw)
-    if raw.startswith("[")
-    else [json.loads(line) for line in raw.splitlines()]
-)
+rows = json.loads(raw)
 published = set()
 for row in rows:
-    for port in row.get("Publishers") or []:
-        if port.get("PublishedPort", 0):
-            if row["Service"] != "web" or port["TargetPort"] != 3000:
+    service = row.get("Config", {}).get("Labels", {}).get(
+        "com.docker.compose.service"
+    )
+    for target, bindings in row.get("NetworkSettings", {}).get("Ports", {}).items():
+        for binding in bindings or []:
+            if service != "web" or target != "3000/tcp":
                 raise SystemExit("Unexpected public port binding")
-            if port.get("URL") != "127.0.0.1":
+            if binding.get("HostIp") != "127.0.0.1":
                 raise SystemExit("Web port must bind only to IPv4 loopback")
-            published.add(row["Service"])
+            if not binding.get("HostPort"):
+                raise SystemExit("Web port has no published host port")
+            published.add(service)
 if published != {"web"}:
     raise SystemExit("Expected only web to publish port 3000")
 print("Only the web entry point is published")

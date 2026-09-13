@@ -30,7 +30,12 @@ printf '%s\n' acceptance-password > "$work/password"
 if "${compose[@]}" exec -T api python /app/scripts/bootstrap_admin.py --email other@example.com; then
   echo 'Second administrator unexpectedly accepted' >&2; exit 1
 fi
-"${compose[@]}" ps --format json | python3 scripts/check_ports.py
+mapfile -t container_ids < <("${compose[@]}" ps --all --quiet)
+if ((${#container_ids[@]} == 0)); then
+  echo 'Compose returned no containers' >&2
+  exit 1
+fi
+"${clean_environment[@]}" docker inspect "${container_ids[@]}" | python3 scripts/check_ports.py
 (cd apps/web && node e2e/foundation.mjs)
 # shellcheck disable=SC2016
 events=$("${compose[@]}" exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT action FROM audit_events WHERE outcome = '\''success'\''"')

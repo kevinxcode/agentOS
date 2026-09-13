@@ -141,13 +141,22 @@ def test_acceptance_inspects_authoritative_runtime_port_bindings():
 def test_acceptance_passes_only_its_fixed_public_origin_to_the_browser():
     script = (ROOT / "scripts/acceptance_smoke.sh").read_text()
     browser_gate = (ROOT / "apps/web/e2e/foundation.mjs").read_text()
+    dockerfile = (ROOT / "apps/web/Dockerfile.acceptance").read_text()
 
-    assert "acceptance_origin=http://127.0.0.1:3300" in script
+    assert "acceptance_origin=http://127.0.0.1:3000" in script
     assert (
-        'AGENTOS_PUBLIC_ORIGIN="$acceptance_origin" node e2e/foundation.mjs'
+        '--network "container:$web_container_id"' in script
+        and '-e AGENTOS_PUBLIC_ORIGIN="$acceptance_origin"' in script
+    )
+    assert (
+        'docker build -f apps/web/Dockerfile.acceptance -t "$browser_image" .'
         in script
     )
+    assert "node e2e/foundation.mjs" not in script
     assert "(?:localhost|127\\.0\\.0\\.1)" in browser_gate
+    assert dockerfile.startswith("FROM mcr.microsoft.com/playwright:v1.63.0-noble\n")
+    assert "corepack pnpm@10.15.1 install --frozen-lockfile" in dockerfile
+    assert 'CMD ["node", "e2e/foundation.mjs"]' in dockerfile
 
 
 def test_ci_has_independent_read_only_pinned_gates():

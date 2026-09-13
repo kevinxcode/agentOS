@@ -7,16 +7,18 @@ command -v docker >/dev/null || { echo 'Docker is required for Compose acceptanc
 umask 077
 work=$(mktemp -d /tmp/agentos-acceptance.XXXXXXXX)
 COMPOSE_PROJECT_NAME="agentos-acceptance-$(date +%s)-$$"
-acceptance_origin=http://127.0.0.1:3300
+acceptance_origin=http://127.0.0.1:3000
 python3 scripts/generate_env.py "$work/environment" "$acceptance_origin"
 printf 'AGENTOS_WEB_PORT=3300\n' >> "$work/environment"
 # shellcheck source=scripts/operations_common.sh
 source scripts/operations_common.sh
 configure_target "$COMPOSE_PROJECT_NAME" "$work/environment"
+browser_image="${COMPOSE_PROJECT_NAME}-browser"
 cleanup() {
   status=$?
   trap - EXIT
   "${compose[@]}" down --remove-orphans || true
+  "${clean_environment[@]}" docker image rm "$browser_image" >/dev/null 2>&1 || true
   echo "Disposable volumes retained for inspection: ${COMPOSE_PROJECT_NAME}_postgres_data and ${COMPOSE_PROJECT_NAME}_minio_data"
   [[ $work == /tmp/agentos-acceptance.* ]] && rm -r -- "$work"
   exit "$status"
@@ -37,7 +39,13 @@ if ((${#container_ids[@]} == 0)); then
   exit 1
 fi
 "${clean_environment[@]}" docker inspect "${container_ids[@]}" | python3 scripts/check_ports.py
-(cd apps/web && AGENTOS_PUBLIC_ORIGIN="$acceptance_origin" node e2e/foundation.mjs)
+web_container_id=$("${compose[@]}" ps --quiet web)
+[[ -n $web_container_id ]] || { echo 'Web container is missing' >&2; exit 1; }
+"${clean_environment[@]}" docker build -f apps/web/Dockerfile.acceptance -t "$browser_image" .
+"${clean_environment[@]}" docker run --rm \
+  --network "container:$web_container_id" \
+  -e AGENTOS_PUBLIC_ORIGIN="$acceptance_origin" \
+  "$browser_image"
 # shellcheck disable=SC2016
 events=$("${compose[@]}" exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT action FROM audit_events WHERE outcome = '\''success'\''"')
 for action in auth.login auth.totp.enrolled auth.logout; do

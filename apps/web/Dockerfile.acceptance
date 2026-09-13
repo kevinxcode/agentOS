@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/playwright:v1.63.0-noble
+
+ENV COREPACK_HOME=/corepack
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/package.json
+RUN npm install --global corepack@0.34.6 \
+    && corepack pnpm@10.15.1 install --frozen-lockfile
+
+COPY apps/web/e2e/foundation.mjs ./apps/web/e2e/foundation.mjs
+
+WORKDIR /app/apps/web
+
+CMD ["node", "e2e/foundation.mjs"]

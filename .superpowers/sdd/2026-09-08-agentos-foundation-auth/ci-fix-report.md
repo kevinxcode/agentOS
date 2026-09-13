@@ -244,3 +244,10 @@ YAML, Node 22.16.0, pnpm 10.15.1.
   only IPv4 loopback. The acceptance origin now uses
   `http://127.0.0.1:3300`; the browser guard permits only explicit localhost or
   canonical IPv4 loopback HTTP origins with a port.
+- A repeat with explicit IPv4 proved that the CI runner host cannot reach the
+  Docker network's published port even though the requested binding is present.
+  The real-browser gate now builds a pinned Playwright 1.63.0 runner image and
+  shares the healthy web container's network namespace. It navigates to
+  `http://127.0.0.1:3000`, while host binding policy remains independently
+  validated from Docker inspect. The browser image contains only the locked web
+  dependencies and the acceptance program and is removed during cleanup.

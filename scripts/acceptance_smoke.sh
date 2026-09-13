@@ -7,7 +7,8 @@ command -v docker >/dev/null || { echo 'Docker is required for Compose acceptanc
 umask 077
 work=$(mktemp -d /tmp/agentos-acceptance.XXXXXXXX)
 COMPOSE_PROJECT_NAME="agentos-acceptance-$(date +%s)-$$"
-python3 scripts/generate_env.py "$work/environment" http://localhost:3300
+acceptance_origin=http://localhost:3300
+python3 scripts/generate_env.py "$work/environment" "$acceptance_origin"
 printf 'AGENTOS_WEB_PORT=3300\n' >> "$work/environment"
 # shellcheck source=scripts/operations_common.sh
 source scripts/operations_common.sh
@@ -36,7 +37,7 @@ if ((${#container_ids[@]} == 0)); then
   exit 1
 fi
 "${clean_environment[@]}" docker inspect "${container_ids[@]}" | python3 scripts/check_ports.py
-(cd apps/web && node e2e/foundation.mjs)
+(cd apps/web && AGENTOS_PUBLIC_ORIGIN="$acceptance_origin" node e2e/foundation.mjs)
 # shellcheck disable=SC2016
 events=$("${compose[@]}" exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT action FROM audit_events WHERE outcome = '\''success'\''"')
 for action in auth.login auth.totp.enrolled auth.logout; do

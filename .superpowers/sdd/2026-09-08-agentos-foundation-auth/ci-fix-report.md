@@ -228,3 +228,14 @@ YAML, Node 22.16.0, pnpm 10.15.1.
 - The focused runtime-port tests passed (`5 passed`), Ruff passed, and every
   shell script passed syntax validation. Docker execution remains CI-only in
   this environment.
+
+## Browser origin handoff follow-up (2026-09-13)
+
+- CI confirmed the Docker inspect port contract with `Only the web entry point
+  is published`, then failed before navigation because the browser process had
+  no `AGENTOS_PUBLIC_ORIGIN` after the intentional environment scrub.
+- RED: a new delivery contract required the acceptance script to define one
+  fixed localhost origin and pass only that value to the browser process.
+- GREEN: environment generation and browser navigation now share the local
+  `acceptance_origin=http://localhost:3300` variable. The non-secret value is
+  scoped to the Node invocation; no credential file is sourced or exported.

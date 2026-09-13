@@ -179,3 +179,19 @@ YAML, Node 22.16.0, pnpm 10.15.1.
 - Full Playwright execution could not run because Chromium was not installed:
   `/root/.cache/ms-playwright/chromium_headless_shell-1243/.../chrome-headless-shell`
   was missing. This is a local environment limitation; CI installs Chromium.
+
+## Chromium E2E selector follow-up (2026-09-13, second correction)
+
+- RED: the contract was updated to require a strict role-alert text filter and
+  failed against the accessible-name locator, which matched no alert in the
+  latest Chromium run.
+- GREEN: the invalid-TOTP assertion now uses
+  `page.getByRole("alert").filter({ hasText: /^Authentication failed$/ })`.
+  The exact text regex excludes Next's route announcer and preserves Playwright
+  strictness if multiple application alerts contain the same message.
+- The selector contract passed (`1 passed`), Playwright discovery passed with
+  all 6 login tests listed, and frontend ESLint, TypeScript, Vitest (58 tests),
+  and Next production build all passed.
+- Full browser execution remains unavailable locally because the Chromium
+  executable is not installed; CI's browser-install step is required for live
+  E2E evidence.

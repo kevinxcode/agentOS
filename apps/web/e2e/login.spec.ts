@@ -46,9 +46,9 @@ test("invalid TOTP is rejected without retaining the submitted code", async ({ p
   const code = page.getByLabel("Authentication code");
   await code.fill("000000");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert", { name: "Authentication failed", exact: true })).toHaveText(
-    "Authentication failed",
-  );
+  await expect(
+    page.getByRole("alert").filter({ hasText: /^Authentication failed$/ }),
+  ).toHaveText("Authentication failed");
   await expect(code).toHaveValue("");
 });
 

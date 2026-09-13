@@ -96,8 +96,8 @@ def test_web_dependencies_are_pinned_to_the_patched_runtime() -> None:
 def test_login_e2e_targets_the_visible_authentication_error_alert() -> None:
     e2e = (ROOT / "apps/web/e2e/login.spec.ts").read_text(encoding="utf-8")
 
-    assert 'page.getByRole("alert", { name: "Authentication failed", exact: true })' in e2e
-    assert 'page.getByRole("alert")).toHaveText("Authentication failed")' not in e2e
+    assert 'page.getByRole("alert").filter({ hasText: /^Authentication failed$/ })' in e2e
+    assert 'page.getByRole("alert", { name: "Authentication failed"' not in e2e
 
 
 def test_python_dependencies_and_build_backend_are_exactly_pinned() -> None:

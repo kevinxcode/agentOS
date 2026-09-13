@@ -140,12 +140,14 @@ def test_acceptance_inspects_authoritative_runtime_port_bindings():
 
 def test_acceptance_passes_only_its_fixed_public_origin_to_the_browser():
     script = (ROOT / "scripts/acceptance_smoke.sh").read_text()
+    browser_gate = (ROOT / "apps/web/e2e/foundation.mjs").read_text()
 
-    assert "acceptance_origin=http://localhost:3300" in script
+    assert "acceptance_origin=http://127.0.0.1:3300" in script
     assert (
         'AGENTOS_PUBLIC_ORIGIN="$acceptance_origin" node e2e/foundation.mjs'
         in script
     )
+    assert "(?:localhost|127\\.0\\.0\\.1)" in browser_gate
 
 
 def test_ci_has_independent_read_only_pinned_gates():

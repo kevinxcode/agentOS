@@ -7,7 +7,7 @@ command -v docker >/dev/null || { echo 'Docker is required for Compose acceptanc
 umask 077
 work=$(mktemp -d /tmp/agentos-acceptance.XXXXXXXX)
 COMPOSE_PROJECT_NAME="agentos-acceptance-$(date +%s)-$$"
-acceptance_origin=http://localhost:3300
+acceptance_origin=http://127.0.0.1:3300
 python3 scripts/generate_env.py "$work/environment" "$acceptance_origin"
 printf 'AGENTOS_WEB_PORT=3300\n' >> "$work/environment"
 # shellcheck source=scripts/operations_common.sh

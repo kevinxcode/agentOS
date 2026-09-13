@@ -239,3 +239,8 @@ YAML, Node 22.16.0, pnpm 10.15.1.
 - GREEN: environment generation and browser navigation now share the local
   `acceptance_origin=http://localhost:3300` variable. The non-secret value is
   scoped to the Node invocation; no credential file is sourced or exported.
+- CI then reached navigation and reported `ERR_CONNECTION_REFUSED` because
+  Chromium resolved `localhost` through IPv6 while Compose intentionally binds
+  only IPv4 loopback. The acceptance origin now uses
+  `http://127.0.0.1:3300`; the browser guard permits only explicit localhost or
+  canonical IPv4 loopback HTTP origins with a port.

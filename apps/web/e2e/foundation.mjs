@@ -16,7 +16,7 @@ const browser = await chromium.launch();
 try {
   const page = await browser.newPage();
   const origin = process.env.AGENTOS_PUBLIC_ORIGIN;
-  if (!/^http:\/\/localhost:\d+$/.test(origin ?? "")) throw new Error("Disposable localhost origin required");
+  if (!/^http:\/\/(?:localhost|127\.0\.0\.1):\d+$/.test(origin ?? "")) throw new Error("Disposable loopback origin required");
   await page.goto(origin);
   await page.waitForURL(`${origin}/login`);
   await page.getByLabel("Email", { exact: true }).fill("admin@example.com");

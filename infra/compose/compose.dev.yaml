@@ -1,0 +1,26 @@
+services:
+  web:
+    restart: "no"
+
+  api:
+    environment:
+      AGENTOS_ENVIRONMENT: development
+      AGENTOS_COOKIE_SECURE: "false"
+    ports:
+      - "127.0.0.1:${AGENTOS_API_PORT:-8000}:8000"
+    restart: "no"
+
+  postgres:
+    ports:
+      - "127.0.0.1:${AGENTOS_POSTGRES_PORT:-5432}:5432"
+    restart: "no"
+
+  redis:
+    ports:
+      - "127.0.0.1:${AGENTOS_REDIS_PORT:-6379}:6379"
+    restart: "no"
+
+  minio:
+    ports:
+      - "127.0.0.1:${AGENTOS_MINIO_PORT:-9000}:9000"
+    restart: "no"

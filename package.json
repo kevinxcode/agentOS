@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "lint": "corepack pnpm@10.15.1 --filter @agentos/web lint",
+    "typecheck": "corepack pnpm@10.15.1 --filter @agentos/web typecheck",
+    "test": "corepack pnpm@10.15.1 --filter @agentos/web test",
+    "build": "corepack pnpm@10.15.1 --filter @agentos/web build"
+  }
+}

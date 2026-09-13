@@ -1,0 +1,10 @@
+.git
+.corepack
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.superpowers
+**/__pycache__
+**/.next
+node_modules
+services/api/.venv

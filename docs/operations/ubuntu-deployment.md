@@ -66,7 +66,9 @@ or 30 minutes idle. Do not disable Secure cookies to troubleshoot HTTPS.
 ## Health and network checks
 
 ```bash
-dc ps --format json | python3 scripts/check_ports.py
+mapfile -t container_ids < <(dc ps --all --quiet)
+((${#container_ids[@]} > 0)) || { echo 'Compose returned no containers' >&2; exit 1; }
+docker inspect "${container_ids[@]}" | python3 scripts/check_ports.py
 dc exec -T api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/health/ready").read().decode())'
 dc exec -T api alembic -c /app/alembic.ini current
 ```

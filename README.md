@@ -13,6 +13,136 @@ Tasks, workers, Kanban, model providers, and GitHub delivery are **not implement
 - [Approved MVP design](docs/superpowers/specs/2026-09-08-agentos-mvp-design.md)
 - [Foundation implementation plan](docs/superpowers/plans/2026-09-08-agentos-foundation-auth.md)
 
+## Run on Windows 11 with WSL2
+
+AgentOS uses Bash-based operational scripts. On Windows, run it inside Ubuntu
+24.04 on WSL2 with Docker Desktop's WSL integration. Keep the repository in the
+Linux filesystem (for example `~/agentOS`), not under `/mnt/c`, for better file
+permissions and performance.
+
+### 1. Install WSL2 and Ubuntu
+
+Open PowerShell as Administrator:
+
+```powershell
+wsl --install -d Ubuntu-24.04
+wsl --update
+wsl --set-default-version 2
+```
+
+Restart Windows when prompted, open Ubuntu, and finish creating your Linux user.
+Verify the installation from PowerShell:
+
+```powershell
+wsl --status
+wsl -l -v
+```
+
+The Ubuntu distribution must show version `2`.
+
+### 2. Install and connect Docker Desktop
+
+Install Docker Desktop for Windows. In Docker Desktop, enable **Use the WSL 2
+based engine**, then enable integration for **Ubuntu-24.04** under **Settings >
+Resources > WSL Integration**. Open Ubuntu and verify:
+
+```bash
+docker version
+docker compose version
+```
+
+### 3. Clone AgentOS inside Ubuntu
+
+Run all remaining commands in the Ubuntu terminal:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 age
+cd ~
+git clone https://github.com/kevinxcode/agentOS.git
+cd agentOS
+git checkout main
+```
+
+### 4. Generate protected local configuration
+
+The configuration stays outside the repository and is created with restricted
+permissions. The generator refuses to overwrite an existing file.
+
+```bash
+mkdir -p "$HOME/.config/agentos"
+chmod 700 "$HOME/.config/agentos"
+python3 scripts/generate_env.py "$HOME/.config/agentos/windows.env" http://localhost:3000
+stat -c '%a %n' "$HOME/.config/agentos/windows.env"
+```
+
+Create a shell helper for the current terminal session:
+
+```bash
+dc() {
+  "$PWD/scripts/agentos-compose.sh" \
+    agentos-windows \
+    "$HOME/.config/agentos/windows.env" \
+    "$@"
+}
+```
+
+### 5. Build, migrate, and start
+
+```bash
+dc config --quiet
+dc build --pull
+dc up -d --wait postgres redis minio
+dc run --rm -T minio-init
+dc run --rm --no-deps -T api alembic -c /app/alembic.ini upgrade head
+dc run --rm --no-deps api python /app/scripts/bootstrap_admin.py --email admin@example.com
+dc up -d --wait
+```
+
+The bootstrap command asks for the administrator password without displaying it.
+Open [http://localhost:3000](http://localhost:3000), sign in, enroll TOTP, and
+store the one-time recovery codes securely.
+
+### 6. Check, stop, and restart
+
+```bash
+dc ps
+dc exec -T api python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/health/ready").read().decode())'
+dc logs --tail 100 web api
+```
+
+Stop or start the stack later from the repository directory after recreating the
+`dc` helper above:
+
+```bash
+dc down
+dc up -d --wait
+```
+
+Do not run `dc down -v`; `-v` deletes persistent database and object-storage
+volumes. For production HTTPS, backups, upgrades, and recovery, follow the Ubuntu
+runbooks linked above.
+
+### WSL2 virtualization troubleshooting
+
+If Docker Desktop reports that virtualization is unavailable, enable CPU
+virtualization in the BIOS/UEFI (Intel Virtualization Technology/VT-x on the ASUS
+ROG Strix SCAR 18), then run in Administrator PowerShell:
+
+```powershell
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+bcdedit /set hypervisorlaunchtype auto
+```
+
+Restart Windows, then run:
+
+```powershell
+wsl --update
+wsl --shutdown
+wsl -l -v
+```
+
 ## Development checks
 
 Use Python 3.13.5, Node 22.16.0, Corepack 0.34.6, pnpm 10.15.1, uv 0.12.8,

@@ -1,186 +1,106 @@
-
 ==================================================
-PHASE 0 — READ PROJECT INSTRUCTIONS FIRST
-==================================================
-
-Before modifying any code:
-
-1. Inspect repository root.
-2. Read:
-   - README.md
-   - AGENTS.md
-   - CLAUDE.md
-   - GEMINI.md
-   - CONTRIBUTING.md
-   - package.json
-   - workspace configuration
-   - Docker files
-   - compose files
-   - environment examples
-   - docs/
-   - architecture documents
-   - TODO documents
-   - roadmap files
-3. Search for repository-specific agent instructions.
-4. Inspect current git status.
-5. Inspect recent commits.
-
-Run commands such as:
-
-pwd
-git status
-git log --oneline -20
-
-and repository-appropriate file discovery commands.
-
-Repository instructions take priority over assumptions in this prompt where they describe current architecture.
-
-==================================================
-PHASE 1 — FULL CODEBASE AUDIT
+MILESTONE 0 — CODEBASE AUDIT + COMPLETION MATRIX
 ==================================================
 
-Perform a systematic audit before major implementation.
+GOAL
+Produce docs/PROJECT_COMPLETION.md: an accurate map of what exists,
+what is partial, and what is missing. No feature code in this milestone.
 
-Identify:
+--------------------------------------------------
+CRITICAL: WRITE AS YOU GO
+--------------------------------------------------
 
-- current architecture
-- apps/packages
-- frontend
-- backend
-- API layer
-- database
-- authentication
-- AI provider abstraction
-- agent runtime
-- task engine
-- workflow/pipeline engine
-- GitHub integration
-- Telegram integration
-- persistence layer
-- streaming infrastructure
-- WebSocket/SSE usage
-- queue/job infrastructure
-- file handling
-- logging
-- tests
-- Docker configuration
-- deployment configuration
-- documentation
+Your conversation context is compressed periodically. Anything you only
+hold "in your head" WILL be lost, and you will re-read the same files
+forever without making progress.
 
-Search specifically for:
+Therefore: after auditing each area below, IMMEDIATELY append your
+findings to docs/PROJECT_COMPLETION.md before moving to the next area.
+Never audit two areas before writing.
 
-TODO
-FIXME
-HACK
-XXX
-TEMP
-placeholder
-mock
-not implemented
-coming soon
-throw new Error
-console.log
-hardcoded
-any
-ts-ignore
-eslint-disable
+If docs/PROJECT_COMPLETION.md already has a section for an area, that
+area is DONE. Skip it. Do not re-read its files.
 
-Also search for:
+Start each session by reading docs/PROJECT_COMPLETION.md first to see
+how far you already got.
 
-- empty handlers
-- fake API responses
-- buttons with no actions
-- unfinished routes
-- missing server actions
-- unhandled promises
-- swallowed exceptions
-- temporary database implementations
-- fake provider implementations
-- incomplete forms
-- unreachable UI
-- dead navigation
-- broken imports
-- disabled tests
+--------------------------------------------------
+AREAS TO AUDIT — IN THIS ORDER
+--------------------------------------------------
 
-==================================================
-PHASE 2 — BUILD A COMPLETION MATRIX
-==================================================
+Do them one at a time. Write after each.
 
-Before large changes, create or update:
+1. Repo layout and tooling
+   Files: package.json, pnpm-workspace.yaml, Makefile, pytest.ini,
+   .editorconfig, .github/
+   Record: build commands, test commands, lint commands, CI status.
 
-docs/PROJECT_COMPLETION.md
+2. Backend: config, db, crypto
+   Files: services/api/src/agentos/config.py, db.py, crypto.py
+   Record: settings shape, DB session handling, migration setup.
 
-It must contain a table similar to:
+3. Backend: auth
+   Files: services/api/src/agentos/auth/*
+   Record: what auth flows exist and work end to end.
 
-Area | Current State | Missing | Priority | Verification | Status
+4. Backend: audit + api surface
+   Files: services/api/src/agentos/audit/*, api/app.py, api/routes/*
+   Record: every route that exists today, with method and path.
 
-Include at minimum:
+5. Frontend
+   Files: apps/web/app/**, apps/web/lib/**, apps/web/components/**
+   Record: every page and API route that exists, and what it does.
 
-- authentication
-- users
-- workspaces
-- projects
-- agents
-- AI providers
-- Ollama
-- OpenRouter
-- OpenAI
-- Anthropic
-- conversations
-- model selector
-- agent execution
-- tool execution
-- streaming
-- tasks
-- Kanban
-- pipelines
-- multi-agent orchestration
-- pipeline retries
-- GitHub
-- Telegram
-- content generation
-- file/context handling
-- settings
-- secrets
-- database
-- logging
-- error handling
-- security
-- tests
-- Docker
-- documentation
-- deployment
+6. Infrastructure
+   Files: compose.yaml, infra/compose/*, scripts/*, Dockerfiles
+   Record: how to run it locally, what services are defined.
 
-Status values:
+7. Tests
+   Files: tests/**, services/api/tests/**, apps/web/tests/**, e2e/
+   Record: what is actually covered.
 
-NOT STARTED
-PARTIAL
-BLOCKED
-COMPLETE
-VERIFIED
+--------------------------------------------------
+REQUIRED OUTPUT FORMAT
+--------------------------------------------------
 
-Do not mark anything VERIFIED until tested.
+docs/PROJECT_COMPLETION.md must contain, per area:
 
-==================================================
-PHASE 3 — DEFINE IMPLEMENTATION ORDER
-==================================================
+## <area name>
 
-Use this dependency-aware priority unless repository architecture requires a justified variation:
+### Exists and works
+- <fact, with file path>
 
-P0 — Build health and foundation
-P1 — Database and backend integrity
-P2 — LLM provider system
-P3 — Agent runtime
-P4 — Task/Kanban system
-P5 — Pipeline orchestration
-P6 — GitHub integration
-P7 — Telegram integration
-P8 — UI/UX completion
-P9 — Reliability and security
-P10 — Testing and documentation
-P11 — Production verification
+### Partial / stubbed
+- <fact, with file path, and what is missing>
 
-Do NOT jump randomly between unrelated areas.
+### Missing entirely
+- <what the AgentOS goal needs that is absent>
 
-Finish coherent milestones.
+Every line must cite a real file path you actually opened.
+Do not write a line you cannot point to in the repo.
 
+--------------------------------------------------
+FINAL STEP
+--------------------------------------------------
+
+After all 7 areas are written, append one last section:
+
+## Completion matrix
+
+A table: feature | status (DONE / PARTIAL / MISSING) | which milestone covers it
+
+Cover every capability named in AGENTS.md PRIMARY OBJECTIVE:
+providers, agents, orchestration, tasks/kanban, pipelines, GitHub,
+Telegram, content/image, projects/workspaces, history, web UI.
+
+--------------------------------------------------
+VERIFICATION
+--------------------------------------------------
+
+Before marking DONE in QUEUE.md, confirm:
+- docs/PROJECT_COMPLETION.md is non-empty and has all 7 area sections
+- it has the completion matrix
+- every file path cited actually exists (spot check at least 10)
+- committed locally
+
+Then STOP. Do not start M01.

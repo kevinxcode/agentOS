@@ -24,3 +24,8 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+
+# local secrets — never commit
+admin-password.txt
+agentos-recovery-codes.txt
+*-recovery-codes.txt
